@@ -14,7 +14,7 @@ readTimeout: 10s
 writeTimeout: 10s
 # Number of read buffers.
 # A higher value allows a wider throughput, a lower value allows to save RAM.
-readBufferCount: 4096
+readBufferCount: 512
 # Maximum size of payload of outgoing UDP packets.
 # This can be decreased to avoid fragmentation on networks with a low UDP MTU.
 udpMaxPayloadSize: 1472
@@ -213,7 +213,7 @@ webrtcICEServers2:
     password: "avikus!"
 # List of public IP addresses that are to be used as a host.
 # This is used typically for servers that are behind 1:1 D-NAT.
-webrtcICEHostNAT1To1IPs: ["192.168.0.200"]
+webrtcICEHostNAT1To1IPs: []
 # Address of a ICE UDP listener in format host:port.
 # If filled, ICE traffic will pass through a single UDP port,
 # allowing the deployment of the server inside a container or behind a NAT.
@@ -223,7 +223,7 @@ webrtcICEUDPMuxAddress:
 # allowing the deployment of the server inside a container or behind a NAT.
 # Setting this parameter forces usage of the TCP protocol, which is not
 # optimal for WebRTC.
-webrtcICETCPMuxAddress: :8189
+webrtcICETCPMuxAddress:
 ###############################################
 # Path parameters
 
