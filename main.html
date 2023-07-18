@@ -22,14 +22,14 @@
     <video id="video" muted controls autoplay playsinline></video>
 
     <script>
-      const url = "http://localhost:8889/mystream/whep";
+      const url = 'http://localhost:8889/mystream/whep';
       const restartPause = 2000;
 
       const unquoteCredential = (v) => JSON.parse(`"${v}"`);
 
       const linkToIceServers = (links) =>
         links !== null
-          ? links.split(", ").map((link) => {
+          ? links.split(', ').map((link) => {
               const m = link.match(
                 /^<(.+?)>; rel="ice-server"(; username="(.*?)"; credential="(.*?)"; credential-type="password")?/i
               );
@@ -40,7 +40,7 @@
               if (m[3] !== undefined) {
                 ret.username = unquoteCredential(m[3]);
                 ret.credential = unquoteCredential(m[4]);
-                ret.credentialType = "password";
+                ret.credentialType = 'password';
               }
 
               return ret;
@@ -49,18 +49,18 @@
 
       const parseOffer = (offer) => {
         const ret = {
-          iceUfrag: "",
-          icePwd: "",
+          iceUfrag: '',
+          icePwd: '',
           medias: [],
         };
 
-        for (const line of offer.split("\r\n")) {
-          if (line.startsWith("m=")) {
-            ret.medias.push(line.slice("m=".length));
-          } else if (ret.iceUfrag === "" && line.startsWith("a=ice-ufrag:")) {
-            ret.iceUfrag = line.slice("a=ice-ufrag:".length);
-          } else if (ret.icePwd === "" && line.startsWith("a=ice-pwd:")) {
-            ret.icePwd = line.slice("a=ice-pwd:".length);
+        for (const line of offer.split('\r\n')) {
+          if (line.startsWith('m=')) {
+            ret.medias.push(line.slice('m='.length));
+          } else if (ret.iceUfrag === '' && line.startsWith('a=ice-ufrag:')) {
+            ret.iceUfrag = line.slice('a=ice-ufrag:'.length);
+          } else if (ret.icePwd === '' && line.startsWith('a=ice-pwd:')) {
+            ret.icePwd = line.slice('a=ice-pwd:'.length);
           }
         }
 
@@ -78,16 +78,16 @@
         }
 
         let frag =
-          "a=ice-ufrag:" + offerData.iceUfrag + "\r\n" + "a=ice-pwd:" + offerData.icePwd + "\r\n";
+          'a=ice-ufrag:' + offerData.iceUfrag + '\r\n' + 'a=ice-pwd:' + offerData.icePwd + '\r\n';
 
         let mid = 0;
 
         for (const media of offerData.medias) {
           if (candidatesByMedia[mid] !== undefined) {
-            frag += "m=" + media + "\r\n" + "a=mid:" + mid + "\r\n";
+            frag += 'm=' + media + '\r\n' + 'a=mid:' + mid + '\r\n';
 
             for (const candidate of candidatesByMedia[mid]) {
-              frag += "a=" + candidate.candidate + "\r\n";
+              frag += 'a=' + candidate.candidate + '\r\n';
             }
           }
           mid++;
@@ -100,39 +100,39 @@
         constructor() {
           this.pc = null;
           this.restartTimeout = null;
-          this.eTag = "";
+          this.eTag = '';
           this.queuedCandidates = [];
           this.start();
         }
 
         start() {
-          console.log("requesting ICE servers");
+          console.log('requesting ICE servers');
 
           fetch(url, {
-            method: "OPTIONS",
+            method: 'OPTIONS',
           })
             .then((res) => this.onIceServers(res))
             .catch((err) => {
-              console.log("error: " + err);
+              console.log('error: ' + err);
               this.scheduleRestart();
             });
         }
 
         onIceServers(res) {
           this.pc = new RTCPeerConnection({
-            iceServers: linkToIceServers(res.headers.get("Link")),
+            iceServers: linkToIceServers(res.headers.get('Link')),
           });
 
-          const direction = "sendrecv";
-          this.pc.addTransceiver("video", { direction });
-          this.pc.addTransceiver("audio", { direction });
+          const direction = 'sendrecv';
+          this.pc.addTransceiver('video', { direction });
+          this.pc.addTransceiver('audio', { direction });
 
           this.pc.onicecandidate = (evt) => this.onLocalCandidate(evt);
           this.pc.oniceconnectionstatechange = () => this.onConnectionState();
 
           this.pc.ontrack = (evt) => {
-            console.log("new track:", evt.track);
-            document.getElementById("video").srcObject = evt.streams[0];
+            console.log('new track:', evt.track);
+            document.getElementById('video').srcObject = evt.streams[0];
           };
 
           this.pc.createOffer().then((offer) => this.onLocalOffer(offer));
@@ -142,32 +142,32 @@
           this.offerData = parseOffer(offer.sdp);
           this.pc.setLocalDescription(offer);
 
-          console.log("sending offer");
+          console.log('sending offer');
 
           fetch(url, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/sdp",
+              'Content-Type': 'application/sdp',
             },
             body: offer.sdp,
           })
             .then((res) => {
               if (res.status !== 201) {
-                throw new Error("bad status code");
+                throw new Error('bad status code');
               }
-              this.eTag = res.headers.get("E-Tag");
+              this.eTag = res.headers.get('E-Tag');
               return res.text();
             })
             .then((sdp) =>
               this.onRemoteAnswer(
                 new RTCSessionDescription({
-                  type: "answer",
+                  type: 'answer',
                   sdp,
                 })
               )
             )
             .catch((err) => {
-              console.log("error: " + err);
+              console.log('error: ' + err);
               this.scheduleRestart();
             });
         }
@@ -177,10 +177,10 @@
             return;
           }
 
-          console.log("peer connection state:", this.pc.iceConnectionState);
+          console.log('peer connection state:', this.pc.iceConnectionState);
 
           switch (this.pc.iceConnectionState) {
-            case "disconnected":
+            case 'disconnected':
               this.scheduleRestart();
           }
         }
@@ -190,6 +190,7 @@
             return;
           }
 
+          console.log(answer);
           this.pc.setRemoteDescription(new RTCSessionDescription(answer));
 
           if (this.queuedCandidates.length !== 0) {
@@ -205,7 +206,7 @@
 
           console.log({ candidate: evt.candidate });
           if (evt.candidate !== null) {
-            if (this.eTag === "") {
+            if (this.eTag === '') {
               this.queuedCandidates.push(evt.candidate);
             } else {
               this.sendLocalCandidates([evt.candidate]);
@@ -215,20 +216,21 @@
 
         sendLocalCandidates(candidates) {
           fetch(url, {
-            method: "PATCH",
+            method: 'PATCH',
             headers: {
-              "Content-Type": "application/trickle-ice-sdpfrag",
-              "If-Match": this.eTag,
+              'Content-Type': 'application/trickle-ice-sdpfrag',
+              'If-Match': this.eTag,
             },
             body: generateSdpFragment(this.offerData, candidates),
           })
             .then((res) => {
+              console.log({ res });
               if (res.status !== 204) {
-                throw new Error("bad status code");
+                throw new Error('bad status code');
               }
             })
             .catch((err) => {
-              console.log("error: " + err);
+              console.log('error: ' + err);
               this.scheduleRestart();
             });
         }
@@ -248,12 +250,12 @@
             this.start();
           }, restartPause);
 
-          this.eTag = "";
+          this.eTag = '';
           this.queuedCandidates = [];
         }
       }
 
-      window.addEventListener("DOMContentLoaded", () => new WHEPClient());
+      window.addEventListener('DOMContentLoaded', () => new WHEPClient());
     </script>
   </body>
 </html>
