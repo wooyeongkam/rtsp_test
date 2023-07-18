@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  server:
+    container_name: server
+    image: bluenviron/mediamtx:latest-ffmpeg
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml
+    ports:
+      - "8189:8189"
+      - "8554:8554"
+      - "1935:1935"
+      - "8888:8888"
+      - "8889:8889"
+    restart: always
+    depends_on:
+      - coturn
+      - stream
+
+  stream:
+    container_name: stream
+    image: linuxserver/ffmpeg
+    restart: always
+    network_mode: host
+    volumes:
+      - ./gizmo.mp4:/video.mp4
+    command:
+      [
+        "-re",
+        "-stream_loop",
+        "-1",
+        "-i",
+        "video.mp4",
+        "-c",
+        "copy",
+        "-f",
+        "rtsp",
+        "-rtsp_transport",
+        "tcp",
+        "rtsp://localhost:8554/mystream",
+      ]
+
+  coturn:
+    container_name: stun
+    image: coturn/coturn
+    restart: always
+    ports:
+      - "3074:3074"
+      - "3074:3074/udp"
+    volumes:
+      - ./:/etc
+    command: ["-n", "-c", "/etc/turnserver.conf"]
